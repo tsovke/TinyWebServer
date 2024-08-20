@@ -1,7 +1,7 @@
 #pragma once
 
 // 线程池
-#include "../locker/locker.hpp"
+#include "../lock/locker.hpp"
 #include <cstdio>
 #include <exception>
 #include <list>
@@ -10,7 +10,9 @@
 template <typename T> class threadpool {
 public:
   threadpool(int thread_number = 16, int max_requests = 10000);
+
   ~threadpool();
+
   bool append(T *request);
 
 private:
@@ -34,6 +36,7 @@ threadpool<T>::threadpool(int thread_number, int max_requests)
   if (thread_number <= 0 || max_requests <= 0) {
     throw std::exception();
   }
+
   m_threads = new pthread_t[m_thread_number];
   if (!m_threads) {
     throw std::exception();
@@ -88,6 +91,7 @@ template <typename T> void threadpool<T>::run() {
 
     T *request = m_wordqueue.front();
     m_wordqueue.pop_front();
+    m_quequelocker.unlock();
     if (!request) {
       continue;
     }

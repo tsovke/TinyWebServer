@@ -15,7 +15,9 @@ public:
     }
   }
   ~locker() { pthread_mutex_destroy(&m_mutex); }
+
   bool lock() { return pthread_mutex_lock(&m_mutex); }
+
   bool unlock() { return pthread_mutex_unlock(&m_mutex); }
 
 private:
@@ -32,6 +34,7 @@ public:
   }
 
   ~cond() { pthread_cond_destroy(&m_cond); }
+
   bool wait(pthread_mutex_t *mutex) {
     return pthread_cond_wait(&m_cond, mutex) == 0;
   }
