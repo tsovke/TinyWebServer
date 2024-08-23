@@ -1,5 +1,4 @@
 // 线程同步机制封装类
-
 #pragma once
 
 #include <exception>
