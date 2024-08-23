@@ -27,10 +27,13 @@ void addsig(int sig, void (*handler)(int)) {
 }
 
 //添加文件描述符到epoll中
-extern int addfd(int epollfd,int fd, bool one_shot);
+extern void addfd(int epollfd,int fd, bool one_shot);
 
 //从epoll中删除文件描述符
-extern int removefd(int epollfd,int fd);
+extern void removefd(int epollfd,int fd);
+
+//修改文件描述符
+extern void modfd(int epollfd,int fd,int ev);
 
 int main(int argc, char *argv[]) {
 
