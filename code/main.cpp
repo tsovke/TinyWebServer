@@ -2,6 +2,7 @@
 #include "lock/locker.hpp"
 #include "threadpool/threadpool.hpp"
 #include <arpa/inet.h>
+#include <cerrno>
 #include <cstdlib>
 #include <errno.h>
 #include <fcntl.h>
@@ -88,5 +89,17 @@ int main(int argc, char *argv[]) {
   epoll_event events[MAX_EVENT_NUMBER];
   int epollfd = epoll_create(5);
 
+  //将监听的文件描述符添加到epoll对象中
+  addfd(epollfd,listenfd ,false );
+  http_conn::m_epollfd=epollfd;
+
+  while (true) {
+    int num = epoll_wait(epollfd,events ,MAX_EVENT_NUMBER ,-1 );
+    if ((num<0)&&(errno==EINTR)) {
+      printf("epoll failure\n");
+      break;
+    }
+  }
+  
   return 0;
 }
