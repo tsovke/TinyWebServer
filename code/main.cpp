@@ -15,7 +15,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define MAX_FD 65535 // 最大文件描述符数量
+#define MAX_FD 65535           // 最大文件描述符数量
 #define MAX_EVENT_NUMBER 10000 // 监听的最大支持事件数
 
 // 添加信号捕捉
@@ -27,14 +27,14 @@ void addsig(int sig, void (*handler)(int)) {
   sigaction(sig, &sa, nullptr);
 }
 
-//添加文件描述符到epoll中
-extern void addfd(int epollfd,int fd, bool one_shot);
+// 添加文件描述符到epoll中
+extern void addfd(int epollfd, int fd, bool one_shot);
 
-//从epoll中删除文件描述符
-extern void removefd(int epollfd,int fd);
+// 从epoll中删除文件描述符
+extern void removefd(int epollfd, int fd);
 
-//修改文件描述符
-extern void modfd(int epollfd,int fd,int ev);
+// 修改文件描述符
+extern void modfd(int epollfd, int fd, int ev);
 
 int main(int argc, char *argv[]) {
 
@@ -85,21 +85,41 @@ int main(int argc, char *argv[]) {
   // 监听
   listen(listenfd, 5);
 
-  //创建epoll对象，事件数组，添加
+  // 创建epoll对象，事件数组，添加
   epoll_event events[MAX_EVENT_NUMBER];
   int epollfd = epoll_create(5);
 
-  //将监听的文件描述符添加到epoll对象中
-  addfd(epollfd,listenfd ,false );
-  http_conn::m_epollfd=epollfd;
+  // 将监听的文件描述符添加到epoll对象中
+  addfd(epollfd, listenfd, false);
+  http_conn::m_epollfd = epollfd;
 
   while (true) {
-    int num = epoll_wait(epollfd,events ,MAX_EVENT_NUMBER ,-1 );
-    if ((num<0)&&(errno==EINTR)) {
+    int num = epoll_wait(epollfd, events, MAX_EVENT_NUMBER, -1);
+    if ((num < 0) && (errno == EINTR)) {
       printf("epoll failure\n");
       break;
     }
+
+    // 循环遍历事件数组
+    for (int i = 0; i < num; ++i) {
+      int sockfd = events[i].data.fd;
+      if (sockfd == listenfd) {
+        // 有客户端连接进来
+        struct sockaddr_in client_address;
+        socklen_t client_addrlen = sizeof(client_address);
+        int connfd = accept(listenfd, (struct sockaddr *)&client_address,
+                            &client_addrlen);
+
+        if (http_conn::m_user_count >= MAX_FD) {
+          // 目前连接数满了
+          // 给客户端写一个信息：服务器内部正忙。
+          close(connfd);
+          continue;
+        }
+        
+      }
+    }
   }
-  
+
   return 0;
 }
