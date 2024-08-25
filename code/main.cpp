@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
   }
 
   // 创建一个数组用于保存所有的客户端信息
-  http_conn *user = http_conn[MAX_FD];
+  http_conn *users = http_conn[MAX_FD];
 
   // 创建监听的套接字
   int listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -68,8 +68,8 @@ int main(int argc, char *argv[]) {
   }
 
   // 设置端口复用
-  int yes = 1;
-  setsockopt(listenfd, SOCK_STREAM, SO_REUSEADDR, &yes, sizeof(yes));
+  int reuse = 1;
+  setsockopt(listenfd, SOCK_STREAM, SO_REUSEADDR, &reuse, sizeof(reuse));
 
   // 绑定
   struct sockaddr_in address;
@@ -117,6 +117,11 @@ int main(int argc, char *argv[]) {
           continue;
         }
         
+        //将新的客户的数据初始化，放到数组中
+        users[connfd].init(connfd,client_address );       
+      }
+      else if (events[i].events.) {
+      
       }
     }
   }

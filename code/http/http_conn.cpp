@@ -25,5 +25,18 @@ void modfd(int epollfd,int fd,int ev){
   epoll_event event;
   event.data.fd = fd;
   event.events = ev | EPOLLONESHOT | EPOLLRDHUP;
-  epollfd_ctl(epollfd,EPOLL_CTL_MOD,fd,&event);
+   epollfd_ctl(epollfd,EPOLL_CTL_MOD,fd,&event);
 }
+
+  void http_conn::init(int sockfd,const sockaddr_in &addr){
+    m_sockfd = sockfd;
+    m_address = addr;
+
+    // 设置端口复用
+    int reuse = 1;
+    setsockopt(m_sockfd, SOCK_STREAM, SO_REUSEADDR, &reuse, sizeof(reuse));
+
+    //添加到epoll对象中
+    addfd(m_epollfd,m_sockfd ,true );
+    ++m_user_count;//总用户数+1
+  }
