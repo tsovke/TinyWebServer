@@ -23,9 +23,11 @@ public:
   static int m_user_count;// 统计用户的数量
   http_conn() {}
   ~http_conn() {}
+  
 
   
   void process(); // 处理客户端请求
+  void init(int sockfd,const sockaddr_in &addr);
 
 private:
   int m_sockfd;//该http连接的socket
