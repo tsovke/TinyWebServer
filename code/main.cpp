@@ -120,8 +120,9 @@ int main(int argc, char *argv[]) {
         //将新的客户的数据初始化，放到数组中
         users[connfd].init(connfd,client_address );       
       }
-      else if (events[i].events.) {
-      
+      else if (events[i].events &(EPOLLRDHUP|EPOLLHUP|EPOLLERR)) {
+        //对方异常断开或错误等事件
+        close_conn(sockfd);
       }
     }
   }
