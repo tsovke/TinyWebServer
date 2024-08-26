@@ -37,7 +37,6 @@ extern void removefd(int epollfd, int fd);
 extern void modfd(int epollfd, int fd, int ev);
 
 int main(int argc, char *argv[]) {
-
   if (argc <= 1) {
     printf("按照如下格式运行： %s port_number\n", basename(argv[1]));
     exit(-1);
@@ -116,16 +115,32 @@ int main(int argc, char *argv[]) {
           close(connfd);
           continue;
         }
-        
-        //将新的客户的数据初始化，放到数组中
-        users[connfd].init(connfd,client_address );       
-      }
-      else if (events[i].events &(EPOLLRDHUP|EPOLLHUP|EPOLLERR)) {
-        //对方异常断开或错误等事件
-        close_conn(sockfd);
+
+        // 将新的客户的数据初始化，放到数组中
+        users[connfd].init(connfd, client_address);
+      } else if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
+        // 对方异常断开或错误等事件
+        users[sockfd].close_conn();
+      } else if (events[i].events & EPOLLIN) {
+        if (users[sockfd].read()) {
+          // 一次性把数据读完
+          pool->append(users + sockfd);
+        } else {
+          users[sockfd].close_conn();
+        }
+      } else if (events[i].events & EPOLLOUT) {
+        if (!users[sockfd].write()) {
+          // 一次性把数据写完
+          users[sockfd].close_conn();
+        }
       }
     }
   }
 
+  close(epollfd);
+  close(listenfd);
+  delete [] users;
+  delete pool;
+  
   return 0;
 }
