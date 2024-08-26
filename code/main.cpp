@@ -1,4 +1,4 @@
-#include "http/http_conn.h" 
+#include "http/http_conn.h"
 // #include "lock/locker.hpp"
 #include "threadpool/threadpool.hpp"
 #include <arpa/inet.h>
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
   }
 
   // 创建一个数组用于保存所有的客户端信息
-  http_conn *users =new http_conn[MAX_FD];
+  http_conn *users = new http_conn[MAX_FD];
 
   // 创建监听的套接字
   int listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
   }
 
   // 设置端口复用
-  int reuse = 1;
+  int reuse{1};
   setsockopt(listenfd, SOCK_STREAM, SO_REUSEADDR, &reuse, sizeof(reuse));
 
   // 绑定
@@ -139,8 +139,8 @@ int main(int argc, char *argv[]) {
 
   close(epollfd);
   close(listenfd);
-  delete [] users;
+  delete[] users;
   delete pool;
-  
+
   return 0;
 }
