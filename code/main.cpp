@@ -1,5 +1,5 @@
-#include "http/http_conn.h" #include "lock/locker.hpp" #include "threadpool/threadpool.hpp" #include < arpa / inet.h> #include < csignal> #include < cstdlib> #include < errno.h> #include < fcntl.h> #include < netinet / in.h> #include < signal.h> #include < stdio.h>
-#include "lock/locker.hpp"
+#include "http/http_conn.h" 
+// #include "lock/locker.hpp"
 #include "threadpool/threadpool.hpp"
 #include <arpa/inet.h>
 #include <cerrno>
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
   }
 
   // 创建一个数组用于保存所有的客户端信息
-  http_conn *users = http_conn[MAX_FD];
+  http_conn *users =new http_conn[MAX_FD];
 
   // 创建监听的套接字
   int listenfd = socket(AF_INET, SOCK_STREAM, 0);

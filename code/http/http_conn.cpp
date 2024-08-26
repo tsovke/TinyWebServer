@@ -3,6 +3,8 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 
+int http_conn::m_epollfd{-1};
+int http_conn::m_user_count{0};
 // 设置文件描述符非阻塞
 void setnonblocking(int fd) {
   int flag = fcntl(fd, F_GETFL);
@@ -70,10 +72,9 @@ bool http_conn::write() {
   return true;
 }
 
-//由线程池中的工作线程调用，这是处理HTTP请求那入口函数
-void http_conn::process(){
-  //解析HTTP请求
+// 由线程池中的工作线程调用，这是处理HTTP请求那入口函数
+void http_conn::process() {
+  // 解析HTTP请求
   printf("parse request, create response\n");
-  //生成响应
+  // 生成响应
 }
-
