@@ -19,17 +19,17 @@
 
 class http_conn {
 public:
-  static int m_epollfd;//所有的socket的事件都注册到一个epollfd上
-  static int m_user_count;// 统计用户的数量
+  static int m_epollfd; // 所有的socket的事件都注册到一个epollfd上
+  static int m_user_count; // 统计用户的数量
   http_conn() {}
   ~http_conn() {}
-  
 
-  
   void process(); // 处理客户端请求
-  void init(int sockfd,const sockaddr_in &addr);
-  void close_conn(); //关闭连接
+  void init(int sockfd, const sockaddr_in &addr);
+  void close_conn(); // 关闭连接
+  bool read();       // 非阻塞读
+  bool write();      // 非阻塞读
 private:
-  int m_sockfd;//该http连接的socket
-  sockaddr_in m_address;//通信的socket地址
+  int m_sockfd;          // 该http连接的socket
+  sockaddr_in m_address; // 通信的socket地址
 };

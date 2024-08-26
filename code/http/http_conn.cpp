@@ -1,4 +1,5 @@
 #include "http_conn.h"
+#include <cstdio>
 #include <fcntl.h>
 #include <sys/epoll.h>
 
@@ -58,4 +59,13 @@ void http_conn::close_conn() {
     m_sockfd = -1;
     --m_user_count; // 总客户数-1
   }
+}
+
+bool http_conn::read() {
+  printf("一次性读完数据\n");
+  return true;
+}
+bool http_conn::write() {
+  printf("一次性读完数据\n");
+  return true;
 }
