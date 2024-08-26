@@ -66,6 +66,14 @@ bool http_conn::read() {
   return true;
 }
 bool http_conn::write() {
-  printf("一次性读完数据\n");
+  printf("一次性写完数据\n");
   return true;
 }
+
+//由线程池中的工作线程调用，这是处理HTTP请求那入口函数
+void http_conn::process(){
+  //解析HTTP请求
+  printf("parse request, create response\n");
+  //生成响应
+}
+
