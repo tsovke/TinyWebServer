@@ -1,7 +1,9 @@
 #include "http_conn.h"
+#include <cerrno>
 #include <cstdio>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 
 int http_conn::m_epollfd{-1};
 int http_conn::m_user_count{0};
@@ -16,7 +18,9 @@ void setnonblocking(int fd) {
 void addfd(int epollfd, int fd, bool one_shot) {
   epoll_event event;
   event.data.fd = fd;
-  event.events = EPOLLIN | EPOLLRDHUP;
+  // event.events = EPOLLIN | EPOLLRDHUP;
+  event.events = EPOLLIN | EPOLLET |EPOLLRDHUP;
+
   if (one_shot) {
     event.events = event.events | EPOLLONESHOT;
   }
@@ -65,6 +69,22 @@ void http_conn::close_conn() {
 
 bool http_conn::read() {
   printf("一次性读完数据\n");
+
+  int bytes_read{0};
+  while (true) {
+    bytes_read = recv(m_sockfd, m_read_buf + m_read_idx, READ_BUFFER_SIZE-m_read_idx, 0);
+    if (bytes_read == -1) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        // 没有数据
+        break;
+      }
+    } else if (bytes_read == 0) {
+      // 对方关闭连接
+      return false;
+    }
+    m_read_idx += bytes_read;
+  }
+  printf("读取到了数据：%s\n",m_read_buf);
   return true;
 }
 bool http_conn::write() {
