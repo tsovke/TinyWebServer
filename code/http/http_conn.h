@@ -74,17 +74,17 @@ public:
   void init(int sockfd, const sockaddr_in &addr);
   void close_conn(); // 关闭连接
   bool read();       // 非阻塞读
- bool write();      // 非阻塞读
-  HTTP_CODE process_read();//解析HTTP请求
-  HTTP_CODE process_request_line(char *text);//解析请求首行
-  HTTP_CODE process_headers(char *text);//解析请求行
-  HTTP_CODE process_content(char *text);//解析请求体
-
-  LINE_STATUS parse_line();
+  bool write();      // 非阻塞读
 
 private:
   int m_sockfd;          // 该http连接的socket
   sockaddr_in m_address; // 通信的socket地址
   char m_read_buf[READ_BUFFER_SIZE];
   int m_read_idx; // 标识读缓冲区中以及读入的客户端数据的最后一个字节的下一位置
+  HTTP_CODE process_read();                   // 解析HTTP请求
+  HTTP_CODE process_request_line(char *text); // 解析请求首行
+  HTTP_CODE process_headers(char *text);      // 解析请求行
+  HTTP_CODE process_content(char *text);      // 解析请求体
+
+  LINE_STATUS parse_line();
 };

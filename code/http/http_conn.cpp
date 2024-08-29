@@ -19,7 +19,7 @@ void addfd(int epollfd, int fd, bool one_shot) {
   epoll_event event;
   event.data.fd = fd;
   // event.events = EPOLLIN | EPOLLRDHUP;
-  event.events = EPOLLIN | EPOLLET |EPOLLRDHUP;
+  event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
 
   if (one_shot) {
     event.events = event.events | EPOLLONESHOT;
@@ -72,7 +72,8 @@ bool http_conn::read() {
 
   int bytes_read{0};
   while (true) {
-    bytes_read = recv(m_sockfd, m_read_buf + m_read_idx, READ_BUFFER_SIZE-m_read_idx, 0);
+    bytes_read = recv(m_sockfd, m_read_buf + m_read_idx,
+                      READ_BUFFER_SIZE - m_read_idx, 0);
     if (bytes_read == -1) {
       if (errno == EAGAIN || errno == EWOULDBLOCK) {
         // 没有数据
@@ -84,13 +85,20 @@ bool http_conn::read() {
     }
     m_read_idx += bytes_read;
   }
-  printf("读取到了数据：%s\n",m_read_buf);
+  printf("读取到了数据：%s\n", m_read_buf);
   return true;
 }
 bool http_conn::write() {
   printf("一次性写完数据\n");
   return true;
 }
+
+http_conn::HTTP_CODE http_conn::process_read() {}
+http_conn::HTTP_CODE http_conn::process_request_line(char *text) {}
+http_conn::HTTP_CODE http_conn::process_headers(char *text) {}
+http_conn::HTTP_CODE http_conn::process_content(char *text) {}
+
+http_conn::LINE_STATUS parse_line() {}
 
 // 由线程池中的工作线程调用，这是处理HTTP请求那入口函数
 void http_conn::process() {
