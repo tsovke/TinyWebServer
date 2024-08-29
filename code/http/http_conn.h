@@ -81,10 +81,19 @@ private:
   sockaddr_in m_address; // 通信的socket地址
   char m_read_buf[READ_BUFFER_SIZE];
   int m_read_idx; // 标识读缓冲区中以及读入的客户端数据的最后一个字节的下一位置
-  HTTP_CODE process_read();                   // 解析HTTP请求
-  HTTP_CODE process_request_line(char *text); // 解析请求首行
-  HTTP_CODE process_headers(char *text);      // 解析请求行
-  HTTP_CODE process_content(char *text);      // 解析请求体
+
+  int m_checked_idx; // 当前正在分析的字符在读缓冲区的位置
+  int m_start_line;  // 当前正在解析的行的起始位置
+
+  CHECK_STATE m_check_state; // 主状态机当前所处的状态
+
+  void init();                                // 初始化连接其余的信息
+  HTTP_CODE parse_read();                   // 解析HTTP请求
+  HTTP_CODE parse_request_line(char *text); // 解析请求首行
+  HTTP_CODE parse_headers(char *text);      // 解析请求行
+  HTTP_CODE parse_content(char *text);      // 解析请求体
 
   LINE_STATUS parse_line();
+  char *get_line() { return m_read_buf + m_start_line; }
+  HTTP_CODE do_request();
 };

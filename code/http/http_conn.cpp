@@ -56,6 +56,15 @@ void http_conn::init(int sockfd, const sockaddr_in &addr) {
   // 添加到epoll对象中
   addfd(m_epollfd, m_sockfd, true);
   ++m_user_count; // 总用户数+1
+
+  init();
+}
+
+void http_conn::init() {
+  m_check_state = CHECK_STATE_REQUESTLINE; // 初始化状态为解析请求行
+  m_checked_idx = 0;
+  m_start_line = 0;
+  m_read_idx = 0;
 }
 
 // 关闭连接
@@ -93,12 +102,64 @@ bool http_conn::write() {
   return true;
 }
 
-http_conn::HTTP_CODE http_conn::process_read() {}
-http_conn::HTTP_CODE http_conn::process_request_line(char *text) {}
-http_conn::HTTP_CODE http_conn::process_headers(char *text) {}
-http_conn::HTTP_CODE http_conn::process_content(char *text) {}
+http_conn::HTTP_CODE http_conn::parse_read() {
+  LINE_STATUS line_status = LINE_OK;
+  HTTP_CODE ret = NO_REQUEST;
+  char *text = 0;
+  while (
+      ((m_check_state == CHECK_STATE_CONNTENT) && (line_status == LINE_OK)) ||
+      ((line_status = parse_line()) == LINE_OK)) {
+    // 解析到了一行完整的数据，或者解析到了请求但，也是完成的数据
 
-http_conn::LINE_STATUS parse_line() {}
+    // 获取一行数据
+    text = get_line();
+    m_start_line = m_checked_idx;
+    printf("got 1 http line : %s\n", text);
+    switch (m_check_state) {
+    case CHECK_STATE_REQUESTLINE: {
+      ret = parse_request_line(text);
+      if (ret == BAD_REQUEST) {
+        return BAD_REQUEST;
+      }
+      break;
+    }
+
+    case CHECK_STATE_HEADER: {
+      ret = parse_headers(text);
+      if (ret == BAD_REQUEST) {
+        return BAD_REQUEST;
+      } else if (ret == GET_REQUEST) {
+        return do_request();
+      }
+      break;
+    }
+
+    case CHECK_STATE_CONNTENT: {
+      ret = parse_content(text);
+      if (ret == BAD_REQUEST) {
+        return BAD_REQUEST;
+      } else if (ret == GET_REQUEST) {
+        return do_request();
+      }
+      line_status = LINE_OPEN;
+      break;
+    }
+    default: {
+      return INTERNAL_ERROR;
+    }
+    }
+  }
+  return NO_REQUEST;
+}
+
+http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
+  return NO_REQUEST;
+}
+http_conn::HTTP_CODE http_conn::parse_headers(char *text) { return NO_REQUEST; }
+http_conn::HTTP_CODE http_conn::parse_content(char *text) { return NO_REQUEST; }
+
+http_conn::LINE_STATUS http_conn::parse_line() { return LINE_OK; }
+http_conn::HTTP_CODE http_conn::do_request() { return NO_REQUEST; }
 
 // 由线程池中的工作线程调用，这是处理HTTP请求那入口函数
 void http_conn::process() {
