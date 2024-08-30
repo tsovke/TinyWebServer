@@ -84,10 +84,13 @@ private:
 
   int m_checked_idx; // 当前正在分析的字符在读缓冲区的位置
   int m_start_line;  // 当前正在解析的行的起始位置
+  char *m_url;       // 请求目标文件的文件名
+  char *m_version;   // 协议版本，只支持HTTP1.1
+  METHOD m_method;   // 请求方法
 
   CHECK_STATE m_check_state; // 主状态机当前所处的状态
 
-  void init();                                // 初始化连接其余的信息
+  void init();                              // 初始化连接其余的信息
   HTTP_CODE parse_read();                   // 解析HTTP请求
   HTTP_CODE parse_request_line(char *text); // 解析请求首行
   HTTP_CODE parse_headers(char *text);      // 解析请求行

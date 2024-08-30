@@ -1,7 +1,9 @@
 #include "http_conn.h"
 #include <cerrno>
 #include <cstdio>
+#include <cstring>
 #include <fcntl.h>
+#include <mutex>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
@@ -65,6 +67,11 @@ void http_conn::init() {
   m_checked_idx = 0;
   m_start_line = 0;
   m_read_idx = 0;
+  m_method=GET;
+  m_url=0;
+  m_version=0;
+
+  std::memset(m_read_buf, 0, READ_BUFFER_SIZE);
 }
 
 // 关闭连接
@@ -158,7 +165,34 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
 http_conn::HTTP_CODE http_conn::parse_headers(char *text) { return NO_REQUEST; }
 http_conn::HTTP_CODE http_conn::parse_content(char *text) { return NO_REQUEST; }
 
-http_conn::LINE_STATUS http_conn::parse_line() { return LINE_OK; }
+// 解析一行，判断依据\r\n
+http_conn::LINE_STATUS http_conn::parse_line() {
+  char temp;
+  for (; m_checked_idx < m_read_idx; ++m_checked_idx) {
+    temp = m_read_buf[m_checked_idx];
+    if (temp == '\r') {
+      if (m_checked_idx + 1 == m_read_idx) {
+        return LINE_OPEN;
+      } else if (m_read_buf[m_checked_idx + 1] == '\n') {
+        m_read_buf[m_checked_idx++] = '\0';
+        m_read_buf[m_checked_idx++] = '\0';
+        return LINE_OK;
+      }
+      return LINE_BAD;
+
+    } else if (temp == '\n') {
+      if (m_checked_idx > 1 && m_read_buf[m_checked_idx - 1] == '\r') {
+        m_read_buf[m_checked_idx - 1] = '\0';
+        m_read_buf[m_checked_idx++] = '\0';
+        return LINE_OK;
+      }
+      return LINE_BAD;
+    }
+    return LINE_OPEN;
+  }
+
+  return LINE_OK;
+}
 http_conn::HTTP_CODE http_conn::do_request() { return NO_REQUEST; }
 
 // 由线程池中的工作线程调用，这是处理HTTP请求那入口函数
