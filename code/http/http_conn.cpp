@@ -174,6 +174,20 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
   }else {
     return BAD_REQUEST;
   }
+
+  // /index.html HTTP/1.1
+  m_version = strpbrk(m_url, " \t");
+  if (!m_version) {
+    return BAD_REQUEST;
+  }
+
+  // /index.html\0HTTP/1.1
+  if (strcasecmp(m_version,"HTTP/1.1" )!=0) {
+    return BAD_REQUEST;
+  }
+
+  
+
   return NO_REQUEST;
 }
 http_conn::HTTP_CODE http_conn::parse_headers(char *text) { return NO_REQUEST; }
