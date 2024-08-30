@@ -13,6 +13,7 @@
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
@@ -87,6 +88,8 @@ private:
   char *m_url;       // 请求目标文件的文件名
   char *m_version;   // 协议版本，只支持HTTP1.1
   METHOD m_method;   // 请求方法
+  char *m_host;      // 主机名
+  bool m_linker;     // HTTP请求是否保持连接
 
   CHECK_STATE m_check_state; // 主状态机当前所处的状态
 

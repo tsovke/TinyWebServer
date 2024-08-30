@@ -4,6 +4,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <mutex>
+#include <strings.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
@@ -67,9 +68,10 @@ void http_conn::init() {
   m_checked_idx = 0;
   m_start_line = 0;
   m_read_idx = 0;
-  m_method=GET;
-  m_url=0;
-  m_version=0;
+  m_method = GET;
+  m_url = 0;
+  m_version = 0;
+  m_linker = false;
 
   std::memset(m_read_buf, 0, READ_BUFFER_SIZE);
 }
@@ -160,6 +162,18 @@ http_conn::HTTP_CODE http_conn::parse_read() {
 }
 
 http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
+  // GET /index.html HTTP/1.1
+  m_url = strpbrk(text, " \t");
+
+  // GET\0/index.html HTTP/1.1
+  *m_url++='\0';
+
+  char *method = text;
+  if (strcasecmp(method,"GET" )==0) {
+    m_method=GET;
+  }else {
+    return BAD_REQUEST;
+  }
   return NO_REQUEST;
 }
 http_conn::HTTP_CODE http_conn::parse_headers(char *text) { return NO_REQUEST; }
