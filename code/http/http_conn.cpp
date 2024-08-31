@@ -71,7 +71,7 @@ void http_conn::init() {
   m_method = GET;
   m_url = 0;
   m_version = 0;
-  m_linker = false;
+  m_linger= false;
 
   std::memset(m_read_buf, 0, READ_BUFFER_SIZE);
 }
@@ -200,7 +200,28 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
   return NO_REQUEST;
 }
 // 解析请求头
-http_conn::HTTP_CODE http_conn::parse_headers(char *text) { return NO_REQUEST; }
+http_conn::HTTP_CODE http_conn::parse_headers(char *text) {
+  // 遇到空行，表示头部字段解析完毕
+  if (text[0]=='\0') {
+    //如果HTTP请求有消息体，则还需要读取m_content_length字节的消息体
+    //状态转移到CHECK_STATE_CONTENT状态
+    if (m_content_length!=0) {
+      m_check_state = CHECK_STATE_CONNTENT;
+      return NO_REQUEST;
+    }
+    // 否则说明我们已经得到了一个完整的HTTP请求
+    return GET_REQUEST;
+  }else if (strncasecmp(text,"Connection:",11 )==0) {
+    //处理Connection头部字段 Connection: keep-alive
+    text+=11;
+    text +=strspn(text," \t" );
+    if (strcasecmp(text,"keep-alive" )==0) {
+      m_linger=true;
+    }
+  }else if (strncasecmp(text,"Content-length",15 )==0) {
+    
+  }
+   return NO_REQUEST; }
 // 解析请求体
 http_conn::HTTP_CODE http_conn::parse_content(char *text) { return NO_REQUEST; }
 

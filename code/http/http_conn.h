@@ -89,8 +89,9 @@ private:
   char *m_version;   // 协议版本，只支持HTTP1.1
   METHOD m_method;   // 请求方法
   char *m_host;      // 主机名
-  bool m_linker;     // HTTP请求是否保持连接
-
+  bool m_linger;     // HTTP请求是否保持连接
+  int m_content_length; //请求体的长度
+  
   CHECK_STATE m_check_state; // 主状态机当前所处的状态
 
   void init();                              // 初始化连接其余的信息
