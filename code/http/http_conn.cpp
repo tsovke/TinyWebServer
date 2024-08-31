@@ -166,12 +166,12 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
   m_url = strpbrk(text, " \t");
 
   // GET\0/index.html HTTP/1.1
-  *m_url++='\0';
+  *m_url++ = '\0';
 
   char *method = text;
-  if (strcasecmp(method,"GET" )==0) {
-    m_method=GET;
-  }else {
+  if (strcasecmp(method, "GET") == 0) {
+    m_method = GET;
+  } else {
     return BAD_REQUEST;
   }
 
@@ -182,12 +182,20 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
   }
 
   // /index.html\0HTTP/1.1
-  if (strcasecmp(m_version,"HTTP/1.1" )!=0) {
+  if (strcasecmp(m_version, "HTTP/1.1") != 0) {
     return BAD_REQUEST;
   }
 
-  
+  // http://192.168.1.1:10000/index.html
+  if (strncasecmp(m_url, "http://", 7) == 0) {
+    m_url += 7;                 // 192.168.1.1:10000/index.html
+    m_url = strchr(m_url, '/'); // /index.html
+  }
 
+  if (!m_url || m_url[0] != '/') {
+    return BAD_REQUEST;
+  }
+// d
   return NO_REQUEST;
 }
 http_conn::HTTP_CODE http_conn::parse_headers(char *text) { return NO_REQUEST; }
