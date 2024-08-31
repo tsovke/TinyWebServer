@@ -94,11 +94,12 @@ private:
   CHECK_STATE m_check_state; // 主状态机当前所处的状态
 
   void init();                              // 初始化连接其余的信息
-  HTTP_CODE parse_read();                   // 解析HTTP请求
+  HTTP_CODE process_read();                 // 解析HTTP请求
   HTTP_CODE parse_request_line(char *text); // 解析请求首行
   HTTP_CODE parse_headers(char *text);      // 解析请求行
   HTTP_CODE parse_content(char *text);      // 解析请求体
-
+  bool process_write(HTTP_CODE read_code);
+  
   LINE_STATUS parse_line();
   char *get_line() { return m_read_buf + m_start_line; }
   HTTP_CODE do_request();

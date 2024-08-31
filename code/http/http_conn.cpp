@@ -3,10 +3,10 @@
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
-#include <mutex>
 #include <strings.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 
 int http_conn::m_epollfd{-1};
 int http_conn::m_user_count{0};
@@ -111,7 +111,7 @@ bool http_conn::write() {
   return true;
 }
 
-http_conn::HTTP_CODE http_conn::parse_read() {
+http_conn::HTTP_CODE http_conn::process_read() {
   LINE_STATUS line_status = LINE_OK;
   HTTP_CODE ret = NO_REQUEST;
   char *text = 0;
@@ -195,6 +195,8 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
   if (!m_url || m_url[0] != '/') {
     return BAD_REQUEST;
   }
+
+  m_check_state = CHECK_STATE_HEADER; // 主状态机检查状态变成检查请求头
   return NO_REQUEST;
 }
 http_conn::HTTP_CODE http_conn::parse_headers(char *text) { return NO_REQUEST; }
@@ -228,11 +230,22 @@ http_conn::LINE_STATUS http_conn::parse_line() {
 
   return LINE_OK;
 }
+
 http_conn::HTTP_CODE http_conn::do_request() { return NO_REQUEST; }
 
 // 由线程池中的工作线程调用，这是处理HTTP请求那入口函数
 void http_conn::process() {
   // 解析HTTP请求
-  printf("parse request, create response\n");
+  HTTP_CODE read_ret = process_read();
+  if (read_ret == NO_REQUEST) {
+    modfd(m_epollfd, m_sockfd, EPOLLIN);
+    return;
+  }
+
   // 生成响应
+  bool write_ret = process_write(read_ret);
+  if (!write_ret) {
+    close_conn();
+  }
+  modfd(m_epollfd, m_sockfd, EPOLLOUT);
 }
