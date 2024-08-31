@@ -195,7 +195,6 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
   if (!m_url || m_url[0] != '/') {
     return BAD_REQUEST;
   }
-// desgt
   return NO_REQUEST;
 }
 http_conn::HTTP_CODE http_conn::parse_headers(char *text) { return NO_REQUEST; }
