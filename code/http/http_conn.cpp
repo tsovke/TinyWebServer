@@ -1,6 +1,7 @@
 #include "http_conn.h"
 #include <cerrno>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <strings.h>
@@ -219,7 +220,18 @@ http_conn::HTTP_CODE http_conn::parse_headers(char *text) {
       m_linger=true;
     }
   }else if (strncasecmp(text,"Content-length",15 )==0) {
+    // 处理Content-length头部字段
+    text+=15;
+    text+=strspn(text," \t" );
+    m_content_length = atol(text);
     
+  }else if (strncasecmp(text,"Host:" ,5 )==0) {
+    // 处理Host头部字段
+    text+=5;
+    m_host= text;
+    
+  }else {
+    printf("oop! unknow header: %s",text);
   }
    return NO_REQUEST; }
 // 解析请求体
@@ -272,3 +284,7 @@ void http_conn::process() {
   }
   modfd(m_epollfd, m_sockfd, EPOLLOUT);
 }
+
+  bool http_conn::process_write(HTTP_CODE read_code){
+    return true;
+  }
