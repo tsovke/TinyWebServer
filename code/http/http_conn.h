@@ -9,11 +9,11 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/epoll.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
@@ -99,7 +99,7 @@ private:
   HTTP_CODE parse_headers(char *text);      // 解析请求行
   HTTP_CODE parse_content(char *text);      // 解析请求体
   bool process_write(HTTP_CODE read_code);
-  
+
   LINE_STATUS parse_line();
   char *get_line() { return m_read_buf + m_start_line; }
   HTTP_CODE do_request();

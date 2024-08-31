@@ -199,6 +199,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
   m_check_state = CHECK_STATE_HEADER; // 主状态机检查状态变成检查请求头
   return NO_REQUEST;
 }
+// 解析请求头
 http_conn::HTTP_CODE http_conn::parse_headers(char *text) { return NO_REQUEST; }
 http_conn::HTTP_CODE http_conn::parse_content(char *text) { return NO_REQUEST; }
 
