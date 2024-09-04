@@ -99,7 +99,7 @@ private:
   HTTP_CODE parse_request_line(char *text); // 解析请求首行
   HTTP_CODE parse_headers(char *text);      // 解析请求行
   HTTP_CODE parse_content(char *text);      // 解析请求体
-  bool process_write(HTTP_CODE read_code);
+  bool process_write(HTTP_CODE read_code); // HTTP写
 
   LINE_STATUS parse_line();
   char *get_line() { return m_read_buf + m_start_line; }
