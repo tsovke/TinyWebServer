@@ -234,7 +234,8 @@ http_conn::HTTP_CODE http_conn::parse_headers(char *text) {
     printf("oop! unknow header: %s",text);
   }
    return NO_REQUEST; }
-// 解析请求体
+
+// 解析请求体，并没有真正解析HTTP请求体，只是判断它是否被完整的读取了
 http_conn::HTTP_CODE http_conn::parse_content(char *text) { return NO_REQUEST; }
 
 // 解析一行，判断依据\r\n
