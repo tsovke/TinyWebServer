@@ -23,7 +23,7 @@ private:
   int m_thread_number;        // 线程池中的线程数
   int m_max_requests;         // 请求队列允许的最大请求数
   pthread_t *m_threads;       // 线程池数组，大小为m_thread_number
-  std::list<T *> m_wordqueue; // 请求队列
+  std::list<T *> m_workqueue; // 请求队列
   locker m_quequelocker;      // 互斥锁
   sem m_queuestat;            // 信号量
   bool m_stop;                // 是否结束线程
@@ -63,12 +63,12 @@ template <typename T> threadpool<T>::~threadpool() {
 
 template <typename T> bool threadpool<T>::append(T *request) {
   m_quequelocker.lock();
-  if (m_wordqueue.size() > m_max_requests) {
+  if (m_workqueue.size() > m_max_requests) {
     m_quequelocker.unlock();
     return false;
   }
 
-  m_wordqueue.emplace_back(request);
+  m_workqueue.emplace_back(request);
   m_quequelocker.unlock();
   m_queuestat.post();
   return true;
@@ -84,13 +84,13 @@ template <typename T> void threadpool<T>::run() {
   while (!m_stop) {
     m_queuestat.wait();
     m_quequelocker.lock();
-    if (m_wordqueue.empty()) {
+    if (m_workqueue.empty()) {
       m_quequelocker.unlock();
       continue;
     }
 
-    T *request = m_wordqueue.front();
-    m_wordqueue.pop_front();
+    T *request = m_workqueue.front();
+    m_workqueue.pop_front();
     m_quequelocker.unlock();
     if (!request) {
       continue;
