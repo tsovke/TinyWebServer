@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <signal.h>
-#include <stdarg.h>
+#include <cstdarg>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,6 +22,7 @@ class http_conn {
 public:
   static int m_epollfd; // 所有的socket的事件都注册到一个epollfd上
   static int m_user_count; // 统计用户的数量
+  static const int FILENAME_LEN = 256;
   static const int READ_BUFFER_SIZE = 2048;
   static const int WRITE_BUFFER_SIZE = 2048;
 
@@ -83,23 +84,40 @@ private:
   char m_read_buf[READ_BUFFER_SIZE];
   int m_read_idx; // 标识读缓冲区中以及读入的客户端数据的最后一个字节的下一位置
 
-  int m_checked_idx; // 当前正在分析的字符在读缓冲区的位置
-  int m_start_line;  // 当前正在解析的行的起始位置
-  char *m_url;       // 请求目标文件的文件名
-  char *m_version;   // 协议版本，只支持HTTP1.1
-  METHOD m_method;   // 请求方法
-  char *m_host;      // 主机名
-  bool m_linger;     // HTTP请求是否保持连接
-  int m_content_length; //请求体的长度
-  
+  char m_write_buf[WRITE_BUFFER_SIZE];
+  int m_write_idx; //标识写缓冲区中以及写入的客户端数据的最后一个字节的下一位置  
+
+  int m_checked_idx;    // 当前正在分析的字符在读缓冲区的位置
+  int m_start_line;     // 当前正在解析的行的起始位置
+  char *m_url;          // 请求目标文件的文件名
+  char *m_version;      // 协议版本，只支持HTTP1.1
+  METHOD m_method;      // 请求方法
+  char *m_host;         // 主机名
+  bool m_linger;        // HTTP请求是否保持连接
+  int m_content_length; // 请求体的长度
+
   CHECK_STATE m_check_state; // 主状态机当前所处的状态
 
-  void init();                              // 初始化连接其余的信息
-  HTTP_CODE process_read();                 // 解析HTTP请求
-  HTTP_CODE parse_request_line(char *text); // 解析请求首行
-  HTTP_CODE parse_headers(char *text);      // 解析请求行
-  HTTP_CODE parse_content(char *text);      // 解析请求体
-  bool process_write(HTTP_CODE read_code); // HTTP写
+  char m_real_file[FILENAME_LEN];
+  struct stat m_file_stat;
+  char *m_file_address;// 客户请求的目标文件被mmap映射到内存的起始地址中
+
+  void init();                                // 初始化连接其余的信息
+  HTTP_CODE process_read();                   // 解析HTTP请求
+  HTTP_CODE parse_request_line(char *text);   // 解析请求首行
+  HTTP_CODE parse_headers(char *text);        // 解析请求行
+  HTTP_CODE parse_content(char *text);        // 解析请求体
+  bool process_write(HTTP_CODE read_code);    // HTTP写
+  void unmap();                               // 取消内存映射
+  bool add_response(const char *format, ...); // 添加响应状态
+  bool add_status_line(int status, const char *title);
+  bool add_headers(int content_len);
+  bool add_content_length(int content_len);
+  bool add_content_type();
+  bool add_linger();
+  bool add_blank_line();
+  bool add_content(const char *content);
+
 
   LINE_STATUS parse_line();
   char *get_line() { return m_read_buf + m_start_line; }
