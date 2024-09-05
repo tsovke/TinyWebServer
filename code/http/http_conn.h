@@ -3,7 +3,7 @@
 #include "../lock/locker.hpp"
 #include <arpa/inet.h>
 #include <bits/types/struct_iovec.h>
-#include <cstdarg>
+#include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -105,12 +105,15 @@ private:
   struct iovec m_iv[2]; // 创建一个包含两个缓冲区的iovec数组
   int m_iv_count;       // m_iv数组中的元素数量
 
+  int bytes_have_send; // 已经发送的字节
+  int bytes_to_send;   // 将要发送的字节
+
   void init();                                // 初始化连接其余的信息
   HTTP_CODE process_read();                   // 解析HTTP请求
+  bool process_write(HTTP_CODE ret);          // 填充HTTP应答
   HTTP_CODE parse_request_line(char *text);   // 解析请求首行
   HTTP_CODE parse_headers(char *text);        // 解析请求行
   HTTP_CODE parse_content(char *text);        // 解析请求体
-  bool process_write(HTTP_CODE read_code);    // HTTP写
   void unmap();                               // 取消内存映射
   bool add_response(const char *format, ...); // 添加响应状态
   bool add_status_line(int status, const char *title);

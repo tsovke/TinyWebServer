@@ -131,6 +131,7 @@ int main(int argc, char *argv[]) {
       } else if (events[i].events & EPOLLOUT) {
         if (!users[sockfd].write()) {
           // 一次性把数据写完
+          printf("一次性把数据写完\n");
           users[sockfd].close_conn();
         }
       }
