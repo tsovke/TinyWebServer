@@ -12,9 +12,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/uio.h>
 
 int http_conn::m_epollfd{-1};
 int http_conn::m_user_count{0};
+
 // 设置文件描述符非阻塞
 void setnonblocking(int fd) {
   int flag = fcntl(fd, F_GETFL);
