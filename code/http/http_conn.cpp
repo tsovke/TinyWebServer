@@ -1,6 +1,5 @@
 #include "http_conn.h"
 #include <cerrno>
-#include <cmath>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
@@ -143,6 +142,14 @@ bool http_conn::read() {
 bool http_conn::write() {
   int temp = 0;
   int bytes_have_send=0;//已经发送的字节
+  int bytes_to_send= m_write_idx;//将要发送的字节
+
+  if (bytes_to_send==0) {
+    // 将要发送的字节数为0，这一次响应结束
+    modfd(m_epollfd,m_sockfd ,EPOLLIN );
+    init();
+    return true;
+  }
   
 
   return true;
