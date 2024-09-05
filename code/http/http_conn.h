@@ -2,11 +2,12 @@
 
 #include "../lock/locker.hpp"
 #include <arpa/inet.h>
+#include <bits/types/struct_iovec.h>
+#include <cstdarg>
 #include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <signal.h>
-#include <cstdarg>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,7 +86,7 @@ private:
   int m_read_idx; // 标识读缓冲区中以及读入的客户端数据的最后一个字节的下一位置
 
   char m_write_buf[WRITE_BUFFER_SIZE];
-  int m_write_idx; //标识写缓冲区中以及写入的客户端数据的最后一个字节的下一位置  
+  int m_write_idx; // 标识写缓冲区中以及写入的客户端数据的最后一个字节的下一位置
 
   int m_checked_idx;    // 当前正在分析的字符在读缓冲区的位置
   int m_start_line;     // 当前正在解析的行的起始位置
@@ -100,7 +101,9 @@ private:
 
   char m_real_file[FILENAME_LEN];
   struct stat m_file_stat;
-  char *m_file_address;// 客户请求的目标文件被mmap映射到内存的起始地址中
+  char *m_file_address; // 客户请求的目标文件被mmap映射到内存的起始地址中
+  struct iovec m_iv[2]; // 创建一个包含两个缓冲区的iovec数组
+  int m_iv_count;       // m_iv数组中的元素数量
 
   void init();                                // 初始化连接其余的信息
   HTTP_CODE process_read();                   // 解析HTTP请求
@@ -117,7 +120,6 @@ private:
   bool add_linger();
   bool add_blank_line();
   bool add_content(const char *content);
-
 
   LINE_STATUS parse_line();
   char *get_line() { return m_read_buf + m_start_line; }

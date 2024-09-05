@@ -12,7 +12,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/uio.h>
 
 int http_conn::m_epollfd{-1};
 int http_conn::m_user_count{0};
@@ -109,6 +108,7 @@ void http_conn::init() {
 
   std::memset(m_read_buf, 0, FILENAME_LEN);
   m_file_address = nullptr;
+  m_iv_count = 2; // m_iv数组中的元素数量
 }
 
 // 关闭连接
@@ -143,16 +143,46 @@ bool http_conn::read() {
 }
 bool http_conn::write() {
   int temp = 0;
-  int bytes_have_send=0;//已经发送的字节
-  int bytes_to_send= m_write_idx;//将要发送的字节
+  int bytes_have_send = 0;         // 已经发送的字节
+  int bytes_to_send = m_write_idx; // 将要发送的字节
 
-  if (bytes_to_send==0) {
+  if (bytes_to_send == 0) {
     // 将要发送的字节数为0，这一次响应结束
-    modfd(m_epollfd,m_sockfd ,EPOLLIN );
+    modfd(m_epollfd, m_sockfd, EPOLLIN);
     init();
     return true;
   }
-  
+
+  while (true) {
+    // 分散写
+    temp = writev(m_sockfd, m_iv, m_iv_count);
+    if (temp < 0) {
+      // 如果TCP写缓冲没有空间，则等待下一轮EPOLLOUT事件，
+      // 虽然在此期间服务器无法立即近接收到同一客户的下一个请求，
+      // 但可以保证连接的完整性
+      if (errno == EAGAIN) {
+        modfd(m_epollfd, m_sockfd, EPOLLOUT);
+        return true;
+      }
+      unmap();
+      return false;
+    }
+
+    bytes_have_send += temp;
+    bytes_to_send -= temp;
+    if (bytes_to_send <= bytes_have_send) {
+      // 发送HTTP响应成功，根据HTTP请求中的Connection字段决定是否立即断开连接
+      unmap();
+      if (m_linger) {
+        init();
+        modfd(m_epollfd, m_sockfd, EPOLLIN);
+        return true;
+      } else {
+        modfd(m_epollfd, m_sockfd, EPOLLIN);
+        return false;
+      }
+    }
+  }
 
   return true;
 }
